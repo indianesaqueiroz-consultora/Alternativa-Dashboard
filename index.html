@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alternativa Publicidade — Dashboard Comercial 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #080C12; font-family: 'Inter', 'Segoe UI', sans-serif; color: #E2E8F0; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #0D1117; }
+  ::-webkit-scrollbar-thumb { background: #21262d; border-radius: 3px; }
+  button { font-family: inherit; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+const { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+        XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+        ComposedChart, Line, Legend } = Recharts;
+
+// ── DADOS — 230 registros extraídos de todas as abas da planilha ─────────────
+// Verificados centavo a centavo contra os totais do cabeçalho de cada aba
+// Jan=216744 | Fev=124757.08 | Mar=307624.66 | Abr=299730 | Mai=223172.5 | Jun=11600
+const VENDAS = [
+  {mes:"Jan",mn:1,vend:"JP",c:"FRK ARTIGOS DO VESTUARIO LTDA - LEDS",v:10400.0,f:"BOLETO",p:4,a:5340.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"FERREIRA E MURATORI - LONAS",v:600.0,f:"BOLETO",p:1,a:314.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"IMPRESSÃO CARRANCAS",v:400.0,f:"BOLETO",p:1,a:380.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"MRA MOVEIS LTDA - IMPRESSÃO",v:250.0,f:"BOLETO",p:1,a:150.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"POSTO ALJIG - PRODUÇÃO DE LONA",v:560.0,f:"BOLETO",p:1,a:348.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"AFYA PARTICIPAÇÕES S.A - OUTDOORS",v:7170.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"AFYA PARTICIPAÇÕES S.A - OUTDOORS",v:7170.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"MRA MOVEIS - PROJETTA - LED CENTER PÃO ANUAL",v:12000.0,f:"BOLETO",p:12,a:0.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"MONSTER FITNESS CENTRO DE ATIVIDADES ESPORTIVAS LTDA - IMPRESSÃO BERNARDO",v:275.0,f:"PIX",p:1,a:150.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"SOCIEDADE EDUCACIONAL DE BOCAIUVA LTDA-SEBOC - IMPRESSÕES",v:500.0,f:"BOLETO",p:1,a:300.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"FISIOTERAPIA - COMPLEXO MÉDICO E ODONTOLÓGICO MENDES LTDA",v:1000.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"PAX - PAX MINAS MENDES ASSISTÊNCIA FUNERÁRIA LTDA",v:510.0,f:"BOLETO",p:1,a:357.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"LABORATÓRIO - PAX MINAS MENDES SERVIÇOS ADMINISTRATIVOS",v:1375.0,f:"BOLETO",p:1,a:750.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"CLINICA MÉDICA - COMPLEXO MÉDICO E ODONTOLÓGICO MENDES LTDA",v:1000.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"FERREIRA E MURATORI - LONA 2,5 X 1,25 MTS",v:220.0,f:"BOLETO",p:1,a:78.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"BOTELHO PERÍCIAS E CURSOS",v:775.0,f:"BOLETO",p:2,a:150.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"MENDES DIAS ODONTOLOGIA - CONECTA BUSINESS",v:2000.0,f:"N/A",p:1,a:0.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"MART MINAS DISTRIBUICAO LTDA",v:7400.0,f:"BOLETO",p:1,a:1700.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"UFVJM -  INTELLECKT MIDIA EXTERIOR LTDA",v:700.0,f:"BOLETO",p:1,a:150.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"POSTO ALJIG - PRODUÇÃO DE LONA",v:560.0,f:"BOLETO",p:1,a:348.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"COLEGIO OTTO LTDA - LEDS",v:2550.0,f:"BOLETO",p:1,a:1067.5},
+  {mes:"Jan",mn:1,vend:"JP",c:"EH GOL SPORTS COMERCIO DO VESTUARIO LTDA - ANUAL",v:33600.0,f:"BOLETO",p:12,a:0.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"DIQUALI ODONTOLOGIA - GLEYSSON",v:24500.0,f:"BOLETO",p:12,a:1250.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"INSTITUTO SUPERIOR EM CIENCIAS DA SAUDE LTDA - LED TRIMESTRAL",v:17600.0,f:"BOLETO",p:7,a:8055.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"BYD - INTELLECKT MIDIA EXTERIOR LTDA",v:1100.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"MASTER IMOBILIARIA LTDA - RENOVAÇÃO ANUAL LED",v:20400.0,f:"BOLETO",p:12,a:11400.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"FERREIRA E MURATORI LTDA - 13 LONAS",v:2880.0,f:"BOLETO",p:1,a:1344.22},
+  {mes:"Jan",mn:1,vend:"JP",c:"AGUIA7 SEGURANÇA PRIVADA LTDA",v:2400.0,f:"BOLETO",p:2,a:325.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"INSTITUTO EDUCACIONAL PRISMA - IEP",v:2300.0,f:"BOLETO",p:3,a:0.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"LED DROGASIL - CLINICA NORTE MINEIRA DE CIRURGIA PLASTICA LTDA",v:10200.0,f:"BOLETO",p:12,a:7140.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"FILADELFIA - SECOM - PRESTAÇÃO DE CONTAS",v:3564.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"FILADELFIA - SECOM - PRESTAÇÃO DE CONTAS",v:3564.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"FILADELFIA - SECOM - PRESTAÇÃO DE CONTAS",v:3564.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"WIZARD - R2 MIDIA ELETRONICA LTDA",v:3024.0,f:"BOLETO",p:1,a:1252.8},
+  {mes:"Jan",mn:1,vend:"JP",c:"FERREIRA E MURATORI - 13 LONAS (CUSTO DE PRODUÇÃO R$ 126,00)",v:3120.0,f:"BOLETO",p:1,a:1826.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"GIULIANO NASCIMENTO GONÇALVES",v:725.0,f:"BOLETO",p:1,a:449.06},
+  {mes:"Jan",mn:1,vend:"JP",c:"MATER CLINICAS & IMAGENS SERVICOS MEDICOS LTDA",v:1275.0,f:"BOLETO",p:2,a:250.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"PORTAL ENERGIA SOLAR LTDA",v:730.0,f:"BOLETO",p:1,a:195.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"COLEGIO OTTO LTDA - LEDS 15 DIAS",v:2700.0,f:"PIX",p:1,a:875.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"SOCIEDADE EDUCACIONAL DE BOCAIUVA LTDA-SEBOC",v:750.0,f:"BOLETO",p:1,a:450.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"IMPRESSÕES - AFYA PARTICIPACOES S.A",v:6600.0,f:"BOLETO",p:1,a:3600.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"PRIMAVIA MOTORS LTDA",v:350.0,f:"BOLETO",p:1,a:210.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"OOH ABC DA CONSTRUÇÃO - R2 MIDIA",v:864.0,f:"BOLETO",p:1,a:604.8},
+  {mes:"Jan",mn:1,vend:"JP",c:"DRA.UXCILENE - R2 MIDIA",v:864.0,f:"BOLETO",p:1,a:604.8},
+  {mes:"Jan",mn:1,vend:"JP",c:"EXPANSÃO DA ARTE DIGITAL - GIULIANO NASCIMENTO GONÇALVES",v:1445.0,f:"BOLETO",p:1,a:405.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"LOCMAQ LOCACAO DE MAQUINAS LTDA",v:1175.0,f:"BOLETO",p:2,a:600.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"BOTICARIO PRODUTOS DE BELEZA LTDA - EUDORA - VOLUME IMEDIATO",v:6390.0,f:"BOLETO",p:1,a:4209.0},
+  {mes:"Jan",mn:1,vend:"JP",c:"NATALIA - IMPRESSÃO",v:45.0,f:"PIX",p:1,a:0},
+  {mes:"Jan",mn:1,vend:"JP",c:"FELIPE CRISTINO ABREU VELOSO - LED CENTER PÃO",v:3600.0,f:"BOLETO",p:3,a:0.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"EDUARDO VINICIUS SOARES FERREIRA - CAMPANHA FIM DE ANO",v:6484.0,f:"BOLETO",p:10,a:1994.75},
+  {mes:"Fev",mn:2,vend:"JP",c:"FCO - PLACA PRÓPRIA - IMPRESSÃO E COLAGEM",v:290.0,f:"BOLETO",p:1,a:150.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"D MIDIA - PREF. PATOS DE MINAS",v:1000.0,f:"BOLETO",p:1,a:500.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"IMED - IMAGENS MEDICAS LTDA - RESSONAR - IMED - PLACA 40",v:850.0,f:"BOLETO",p:2,a:100.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"RESSONAR IMAGENS MEDICAS LTDA - RESSONAR IMAGENS - PLACA 40",v:850.0,f:"BOLETO",p:2,a:100.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"CENTRO DE IMAGENS MED. MOC LTDA - RESSONAR - CENTRO DE IMAGENS",v:850.0,f:"BOLETO",p:2,a:100.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"BRASIL 84 - CARNAVAL 2026 - PREFEITURA DE MONTES CLAROS",v:5412.0,f:"BOLETO",p:1,a:2897.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"BRASIL 84 - CAMPANHA VOLTA ÀS AULAS 2026 - PREFEITURA DE MONTES CLAROS",v:5412.0,f:"BOLETO",p:1,a:2897.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"PERMUTA - NEXT IDIOMAS",v:5898.0,f:"BOLETO",p:1,a:4398.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"FEVEREIRO - MÃES UNIDAS -  MARIA LETICIA PIMENTEL NOVATO",v:715.0,f:"BOLETO",p:1,a:150.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"MARÇO - MÃES UNIDAS -  MARIA LETICIA PIMENTEL NOVATO",v:715.0,f:"BOLETO",p:1,a:150.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"R2 MIDIA - ABC DA CONSTRUÇÃO",v:2604.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"BABI VOLTA AS AULAS - RAIZ ARMARINHOS LTDA",v:1550.0,f:"BOLETO",p:1,a:300.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"CLÍNICA MÉDICA - AVELAR - COMPLEXO MEDICO E ODONTOLOGICO MENDES LTDA",v:1000.0,f:"BOLETO",p:1,a:264.28},
+  {mes:"Fev",mn:2,vend:"JP",c:"FISIOTERAPIA - AVELAR - COMPLEXO MEDICO E ODONTOLOGICO MENDES LTDA",v:1000.0,f:"BOLETO",p:1,a:264.28},
+  {mes:"Fev",mn:2,vend:"JP",c:"LABORATÓRIO - AVELAR - COMPLEXO MEDICO E ODONTOLOGICO MENDES LTDA",v:900.0,f:"BOLETO",p:1,a:264.28},
+  {mes:"Fev",mn:2,vend:"JP",c:"FUNERARIA - PAX MINAS MENDES ASSISTENCIA FUNERARIA LTDA",v:900.0,f:"BOLETO",p:1,a:264.28},
+  {mes:"Fev",mn:2,vend:"JP",c:"TERRA FORTE - GNC COMERCIO DE VEICULOS LTDA",v:2750.0,f:"BOLETO",p:1,a:1210.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"IMPRESSÕES - ABC DA CONSTRUÇÃO",v:950.0,f:"BOLETO",p:1,a:750.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"PLACA FCO - MAXMIN - IMPRESSÃO E COLAGEM",v:290.0,f:"BOLETO",p:1,a:150.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"VEREADOR ODAIR",v:300.0,f:"PIX",p:1,a:150.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"PRODOESTE - AGENCIA A2",v:11040.0,f:"BOLETO",p:12,a:0.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"BRM COSMECTICS - LYCENCIA DISTRIBUIDORA, COMERCIO E SERVICOS LTDA",v:750.0,f:"BOLETO",p:1,a:0},
+  {mes:"Fev",mn:2,vend:"JP",c:"R2 MÍDIA - CLINICA DE DERMATOLOGIA DO NORTE DE MINAS - (DRA. UXCILENE)",v:1868.74,f:"BOLETO",p:1,a:673.75},
+  {mes:"Fev",mn:2,vend:"JP",c:"MAES UNIDAS - MARIA LETICIA PIMENTEL NOVATO",v:715.0,f:"PIX",p:1,a:150.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"INSTITUTO EDUCACIONAL PRISMA - BI SEMANA 12",v:2900.0,f:"BOLETO",p:5,a:0.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"FERREIRA E MURATORI LTDA - LONAS 7 X 2,33 MTS",v:1800.0,f:"BOLETO",p:1,a:1200.0},
+  {mes:"Fev",mn:2,vend:"BR",c:"PERMUTA - DIFERRO COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA",v:3200.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"MG OUTDOOR - DESTAC PROMOÇÕES -AMERICANSAT",v:720.0,f:"BOLETO",p:1,a:432.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"ANA PAULA GUSMAO BRUZINGA",v:2190.0,f:"BOLETO",p:3,a:450.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"SPAL INDUSTRIA BRASILEIRA DE BEBIDAS SA - FANTA FÊNIX",v:2333.34,f:"BOLETO",p:1,a:1438.9},
+  {mes:"Fev",mn:2,vend:"JP",c:"CAMPOS E FERREIRA LTDA - CONSÓRCIO UNIÃO",v:7710.0,f:"BOLETO",p:6,a:750.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"IRMAOS COSTA CEREAIS LTDA - VAREJÃO CAPITÃO",v:500.0,f:"BOLETO",p:1,a:300.0},
+  {mes:"Fev",mn:2,vend:"BR",c:"TERRANOVA CONSULTORIA LTDA - T3 EXPERIENCE",v:3160.0,f:"BOLETO",p:1,a:1710.0},
+  {mes:"Fev",mn:2,vend:"BR",c:"PLIM TELECOMUNICACOES LTDA - LEDS TRIMESTRAL - BV 20%",v:6750.0,f:"BOLETO",p:3,a:5055.0},
+  {mes:"Fev",mn:2,vend:"JP",c:"SOUZA TELLES SAMPAIO LIMITADA - LED ANUAL",v:38400.0,f:"BOLETO",p:12,a:22620.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"MASTER IMOBILIARIA LTDA - RENOVAÇÃO ANUAL",v:28600.0,f:"BOLETO",p:12,a:0.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"DIQUALI ODONTOLOGIA LTDA - PLACAS DUPLAS",v:27718.0,f:"BOLETO",p:12,a:5275.8},
+  {mes:"Mar",mn:3,vend:"JP",c:"CRISTAL CONSULTORIA, ASSESSORIA E REGULARIZACOES LTDA",v:1345.0,f:"BOLETO",p:2,a:150.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"MASTER IMOBILIARIA LTDA",v:1275.0,f:"BOLETO",p:1,a:150.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"COMERCIAL ALUMINOX DE MONTES CLAROS LTDA",v:21600.0,f:"BOLETO",p:5,a:17900.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"MONVEP - MONTES CLAROS VEICULOS E PECAS LTDA - LED CENTER PÃO",v:12000.0,f:"BOLETO",p:12,a:0.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"ARUNA IMPORTADORA",v:875.0,f:"BOLETO",p:2,a:150.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"ANA PAULA GUSMAO BRUZINGA",v:275.0,f:"BOLETO",p:1,a:150.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"TELMA SANTOS NASCIMENTO",v:775.0,f:"BOLETO",p:2,a:150.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"ANA KARININA ALMEIDA MAGALHÃES",v:1400.0,f:"BOLETO",p:1,a:862.5},
+  {mes:"Mar",mn:3,vend:"JP",c:"SANTANDER CORRETORA DE SEGUROS, INVESTIMENTOS E SERVICOS S.A",v:1375.0,f:"C.CRÉDITO",p:1,a:150.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"TERRANOVA CONSULTORIA LTDA - T3 EXPERIENCE",v:4590.0,f:"BOLETO",p:1,a:2250.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"RESIDENCIAL SENIOR BEIJA FLOR LTDA",v:18332.0,f:"BOLETO",p:12,a:15058.6},
+  {mes:"Mar",mn:3,vend:"JP",c:"PERMUTA - DROGARIA MADRI (MARCELO GUSMAO CARDOSO LTDA) - PERMUTA R$ 14.575,00",v:29150.0,f:"BOLETO",p:5,a:27238.75},
+  {mes:"Mar",mn:3,vend:"JP",c:"VOX2YOU - LEDS (EVOLUIR TREINAMENTO E APERFEICOAMENTO PROFISSIONAL LTDA) PERMUTA R$ 2.400,00",v:3600.0,f:"BOLETO",p:3,a:3540.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"BONJUÁ (B&F HOTELARIA LTDA) - CONECTA + PAGAMENTO",v:1605.0,f:"BOLETO",p:2,a:600.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"A2347 - PRODUÇÃO E INSTALAÇÃO DE LONA (POSTO ALJIG LTDA) - CUSTO DE PRODUÇÃO R$ 1.030,00",v:1560.0,f:"BOLETO",p:1,a:1030.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"MRA MOVEIS LTDA - IMPRESSÃO",v:250.0,f:"BOLETO",p:1,a:150.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"TITAN CONTAINERS LTDA - CONTRATO ANUAL",v:61820.0,f:"BOLETO",p:1,a:12155.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"DEP. OSCAR (OSCAR LISANDRO TEIXEIRA)",v:9355.0,f:"BOLETO",p:6,a:9355.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"DIFERRO COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA - 2248",v:15697.0,f:"BOLETO",p:5,a:13120.17},
+  {mes:"Mar",mn:3,vend:"JP",c:"AGUIA7 (AGUIA 7 SEGURANCA PRIVADA LTDA)",v:1275.0,f:"BOLETO",p:2,a:150.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"CLEO VIAGENS (25.271.670 CLEONICE ESTEVES FREIRE)",v:650.0,f:"BOLETO",p:2,a:325.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"LED MEZZAN (ALISSON LINNEKER AMARAL SILVA)",v:9000.0,f:"BOLETO",p:12,a:0.0},
+  {mes:"Mar",mn:3,vend:"MF",c:"WENDERSON EUSTAQUIO - SERV.MEDICOS",v:550.0,f:"BOLETO",p:2,a:300.0},
+  {mes:"Mar",mn:3,vend:"MF",c:"PORTAL EVENTOS - IMPRESSÃO",v:275.0,f:"PIX",p:1,a:150.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"CONSTRUTORA MANZI - LONAS (CONSTRUTORA PARK WAY SPE LTDA) - LIQUIDO R$ 1.180,00",v:1700.0,f:"BOLETO",p:1,a:520.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"MATER CLINICAS & IMAGENS SERVICOS MEDICOS LTDA",v:3825.0,f:"BOLETO",p:3,a:450.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"SENAC - FILADELFIA (SERVICO NACIONAL DE APRENDIZAGEM COMERCIAL - SENAC MINAS)",v:4950.0,f:"BOLETO",p:1,a:1375.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"AVELAR (PAX MINAS AVELAR SERVICOS ADMINISTRATIVOS LTDA)",v:1300.0,f:"BOLETO",p:1,a:150.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"AVELAR (PAX MINAS MENDES ASSISTENCIA FUNERARIA LTDA)",v:150.0,f:"BOLETO",p:1,a:150.0},
+  {mes:"Mar",mn:3,vend:"MF",c:"VILA RICA RESIDENCIAL",v:760.0,f:"BOLETO",p:2,a:150.0},
+  {mes:"Mar",mn:3,vend:"MF",c:"R2 MIDIA LTDA",v:2100.0,f:"BOLETO",p:1,a:1059.2},
+  {mes:"Mar",mn:3,vend:"JP",c:"RESTAURANTE CARRANCAS - IMPRESSÃO",v:450.0,f:"BOLETO",p:1,a:437.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"INSECT CONTROLE DE PRAGAS - CONECTA BUSINESS R$ 2.100,00",v:550.0,f:"BOLETO",p:1,a:300.0},
+  {mes:"Mar",mn:3,vend:"MF",c:"ALMG",v:1502.66,f:"BOLETO",p:1,a:481.33},
+  {mes:"Mar",mn:3,vend:"JP",c:"T3 EXPERIENCE (TERRANOVA CONSULTORIA LTDA)",v:5440.0,f:"BOLETO",p:1,a:5065.0},
+  {mes:"Mar",mn:3,vend:"MF",c:"MELISSA MACEDO - LED",v:1200.0,f:"DINHEIRO",p:1,a:720.0},
+  {mes:"Mar",mn:3,vend:"MF",c:"SERGIO NUNES - INVEST",v:1300.0,f:"PIX",p:1,a:0.0},
+  {mes:"Mar",mn:3,vend:"MF",c:"CLARO DUAL MIDIA - ANUAL",v:13750.0,f:"BOLETO",p:12,a:10750.0},
+  {mes:"Mar",mn:3,vend:"JP",c:"SENAC - CANDIDO E PIRES (SERVICO NACIONAL DE APRENDIZAGEM COMERCIAL - SENAC MINAS",v:1300.0,f:"BOLETO",p:1,a:780.0},
+  {mes:"Mar",mn:3,vend:"MF",c:"PREFEITURA DE MOC - AG.BRASIL 84 - MONTESCLAREAR - PI 3073.37",v:10550.0,f:"BOLETO",p:1,a:6549.0},
+  {mes:"Mar",mn:3,vend:"MF",c:"SUPERM.BH PORTEIRINHA - IMPRESSÃO",v:150.0,f:"PIX",p:1,a:126.0},
+  {mes:"Mar",mn:3,vend:"MF",c:"BERRANTE LEILOES - EDESIO JOSE MACHADO",v:1700.0,f:"BOLETO",p:1,a:300.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"MASTER IMOBILIARIA LTDA - PLACA 33",v:1800.0,f:"BOLETO",p:1,a:150.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"MRA MOVEIS - PROJETTA - PLACA 138",v:13200.0,f:"BOLETO",p:6,a:0.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"SILVA E FREITAS - JA VAI LI",v:10800.0,f:"BOLETO",p:12,a:6480.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"EH GOL PLACA 84",v:2000.0,f:"BOLETO",p:2,a:0.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"ESPAÇO SARA DIAS (SARA CAROLINY DIAS)",v:5160.0,f:"BOLETO",p:4,a:0},
+  {mes:"Abr",mn:4,vend:"MF",c:"PRONTOCLINICA E HOSPITAIS SÃO LUCAS",v:2200.0,f:"BOLETO",p:1,a:1200.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"MÃES UNIDAS (MARIA LETICIA PIMENTEL NOVATO)",v:715.0,f:"PIX",p:1,a:150.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"ROMMANEL - (FOUR HANDS PUBLICIDADE E MARKETING LTDA)",v:2000.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"ROMMANEL - IMPRESSÕES (FOUR HANDS PUBLICIDADE E MARKETING LTDA)",v:1100.0,f:"BOLETO",p:1,a:600.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"CONTABILIZE SAUDE",v:1300.0,f:"BOLETO",p:2,a:0.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"PLANEJAR ENGENHARIA 15%BV",v:3150.0,f:"BOLETO",p:3,a:2079.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"CAMPANHA FEMSA (UHURU COMUNICACAO LTDA) - BV 15%",v:3060.0,f:"BOLETO",p:1,a:2210.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"CENTRO ESTETICA MENDES - GIOLASER - DRA MOLYANA",v:17280.0,f:"BOLETO",p:12,a:6027.2},
+  {mes:"Abr",mn:4,vend:"MF",c:"FC FRANCHISING - RIZZO - ANUAL",v:21600.0,f:"BOLETO",p:12,a:0.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"FC FRANCHISING - RIZZO - IMPRESSÕES",v:550.0,f:"BOLETO",p:1,a:300.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"VIA TRUCK (VIA TRUCKS COMERCIO DE CAMINHOES LTDA)",v:14770.0,f:"BOLETO",p:12,a:1190.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"MATEUS AUGUSTO - VENDA LOTE",v:2100.0,f:"BOLETO",p:2,a:1350.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"DIQUALI GLEYSSON",v:12410.0,f:"BOLETO",p:12,a:2285.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"LUZ PRIME SOLUÇÕES EM ILUMINAÇÃO",v:14400.0,f:"BOLETO",p:12,a:7200.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"FROES E FREITAS - VILA 61 - EMPENA",v:7580.0,f:"BOLETO",p:6,a:4280.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"FROES E FREITAS - VILA 61 - EMPENA",v:6600.0,f:"PERMUTA",p:1,a:0.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"O BOTICARIO (E MIDIA NEGOCIOS PUBLICITARIOS LTDA)",v:1200.0,f:"BOLETO",p:1,a:810.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"LUZ PRIME SOLUCOES EM ILUMINACAO LTDA - PLATAFORMA CONECTA R$ 3.600,00",v:3600.0,f:"PERMUTA",p:1,a:0},
+  {mes:"Abr",mn:4,vend:"JP",c:"LUZ PRIME SOLUCOES EM ILUMINACAO LTDA",v:1300.0,f:"BOLETO",p:1,a:390.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"MINAS BRASIL - BV 20% - LED CENTER PÃO (GUEDES & PAIXAO LTDA)",v:15600.0,f:"BOLETO",p:12,a:0},
+  {mes:"Abr",mn:4,vend:"JP",c:"MINAS BRASIL - BV 20% - LED MESTRA FININHA (GUEDES & PAIXAO LTDA)",v:14400.0,f:"BOLETO",p:12,a:0},
+  {mes:"Abr",mn:4,vend:"JP",c:"ALMG - VIOLÊNCIA NÃO É AMOR-GUIA PCDs",v:3220.0,f:"BOLETO",p:1,a:990.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"RESTAURANTE - BELLA ITALIA (PADARIA BELLA ITALIA DIVINA MASSA LTDA)",v:845.0,f:"BOLETO",p:2,a:518.75},
+  {mes:"Abr",mn:4,vend:"MF",c:"AFYA - FIP MOC",v:14000.0,f:"BOLETO",p:1,a:4595.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"ASTRAL - IMPRESSÃO",v:250.0,f:"BOLETO",p:1,a:150.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"GNS SEGURANÇA - UP SERVICE",v:6275.0,f:"BOLETO",p:4,a:750.0},
+  {mes:"Abr",mn:4,vend:"BR",c:"F.S.M COMERCIO E SERVICOS LTDA",v:368.0,f:"BOLETO",p:1,a:0},
+  {mes:"Abr",mn:4,vend:"JP",c:"UROPLENUS (UROPLENUS LTDA)",v:2020.0,f:"BOLETO",p:3,a:819.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"MONTESCLAREAR (MUNICIPIO DE MONTES CLAROS)",v:8440.0,f:"BOLETO",p:1,a:4787.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"Campanhas FEMSA (UHURU COMUNICACAO LTDA)",v:4300.0,f:"BOLETO",p:1,a:2940.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"CONFIANÇA COSMETICOS",v:2200.0,f:"BOLETO",p:1,a:1445.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"TINTACON - FREIOPEÇAS",v:25815.0,f:"PERMUTA",p:4,a:1350.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"HOSPITAL DE OLHOS",v:6000.0,f:"BOLETO",p:12,a:0.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"SEBOC - IMPRESSÕES",v:1500.0,f:"BOLETO",p:1,a:750.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"AL PIRAMIDE EMPREENDIMENTOS IMOBILIARIOS",v:3000.0,f:"BOLETO",p:3,a:0.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"MRN COMUNICAÇÃO E EVENTOS",v:550.0,f:"BOLETO",p:1,a:181.5},
+  {mes:"Abr",mn:4,vend:"JP",c:"PRODUÇÃO DE CARTAZ LONADO (POSTO ALJIG LTDA)",v:1250.0,f:"BOLETO",p:1,a:750.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"BOTICÁRIO - EUDORA - SMARTHOOH",v:6192.0,f:"BOLETO",p:1,a:3832.2},
+  {mes:"Abr",mn:4,vend:"JP",c:"CLINICA FÉRTIL (FERTIL REPRODUCAO HUMANA LTDA)",v:3450.0,f:"BOLETO",p:3,a:2070.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"REIS FARIAS - KBN PIZZARIA",v:900.0,f:"PIX",p:1,a:540.0},
+  {mes:"Abr",mn:4,vend:"BR",c:"LONA CARRANCAS (T & J ALIMENTOS E CONVENIENCIA LTDA) - CUSTO R$ 1.320,00",v:2000.0,f:"BOLETO",p:1,a:1320.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"NOVAIS CONSTRUTORA (NOVAIS INCORPORACOES E EMPREENDIMENTOS LTDA) - (LONA 1.500,00)",v:16100.0,f:"BOLETO",p:12,a:1500.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"INSECT CONTROLE DE PRAGAS (CONECTA)",v:550.0,f:"PERMUTA",p:1,a:0},
+  {mes:"Abr",mn:4,vend:"MF",c:"INSECT CONTROLE DE PRAGAS",v:800.0,f:"PIX",p:2,a:150.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"JOSIENE FERREIRA",v:1400.0,f:"BOLETO",p:2,a:300.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"WALMIR ARAUJO - TELEPEÇAS 251",v:1900.0,f:"BOLETO",p:4,a:1200.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"BR CONSÓRCIOS (BR CONSORCIOS ADMINISTRADORA DE CONSORCIOS LTDA)",v:1300.0,f:"BOLETO",p:1,a:780.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"MR HAMBURGUERIA - PIOR LUGAR - LAMBE LAMBE",v:780.0,f:"PIX",p:1,a:304.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"LAMBE LAMBE - 5X1",v:150.0,f:"PIX",p:1,a:60.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"MONTES CLAROS SHOPPING (ASSOCIACAO DOS LOJISTAS DO MONTES CLAROS SHOPPING CENTER)",v:500.0,f:"BOLETO",p:1,a:250.0},
+  {mes:"Abr",mn:4,vend:"JP",c:"CORRIDA MONTES CLAROS 10/05 (ASSOCIACAO TRANSFORMA VALORES - REDE ATVA)",v:1300.0,f:"BOLETO",p:1,a:0},
+  {mes:"Abr",mn:4,vend:"MF",c:"SEBRAE MIX MIDIA",v:1300.0,f:"BOLETO",p:1,a:780.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"INTELLECKT - MG OUTDOOR - CENTRALIZACAO",v:500.0,f:"BOLETO",p:1,a:250.0},
+  {mes:"Abr",mn:4,vend:"MF",c:"CLEO VIAGENS (25.271.670 CLEONICE ESTEVES FREIRE)",v:700.0,f:"BOLETO",p:3,a:350.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"AGUIA7 (AGUIA 7 SEGURANCA PRIVADA LTDA)",v:1275.0,f:"BOLETO",p:2,a:150.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"MASTER IMOBILIARIA - LED CENTER PÃO",v:12000.0,f:"BOLETO",p:12,a:0.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"VINICIUS DE CASTRO - DORATTA PIZZARIA - LED NORMANHA",v:6000.0,f:"BOLETO",p:12,a:3000.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"IMOBILIARIA MONTES LTDA",v:2200.0,f:"BOLETO",p:2,a:150.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"NATERCIO - GRUPO MERITUS",v:1200.0,f:"BOLETO",p:2,a:150.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"J A SOARES - MIX MIDIA - SEBRA",v:500.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"CLASSIC MENS - ÁRAMIS (CLASSIC MENS CLUB COMERCIO DE VESTUARIO E ACESSORIOS LTDA.)",v:1300.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"PRODUÇÃO DE CARTAZ LONADO (FERREIRA E MURATORI LTDA)",v:2600.0,f:"BOLETO",p:2,a:1818.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"CONFIANÇA COSMETICOS - NATURA - LEDS",v:3300.0,f:"BOLETO",p:1,a:2110.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"MARIANNE ANTUNES (MARIANNE ANTUNES ALMEIDA FRANCO)",v:870.0,f:"BOLETO",p:2,a:536.75},
+  {mes:"Mai",mn:5,vend:"MF",c:"VITELLO - ANUAL (HOLDING TQPLAN RESTAURANTE E NEGOCIOS LTDA)",v:13200.0,f:"BOLETO",p:12,a:0.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"PAROQUIA NOSSA SENHORA DO PERPETUO SOCORRO E TODOS OS SANTOS (ARQUIDIOCESE DE MONTES CLAROS)",v:1470.0,f:"BOLETO",p:2,a:300.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"FRIGORIFICO INDUSTRIAL - SAUDALI",v:5125.0,f:"BOLETO",p:1,a:3100.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"PREFEITURA DE MONTES CLAROS - IPTU",v:10550.0,f:"BOLETO",p:1,a:6865.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"CLASSIC - PERMUTA BERNARDO",v:5400.0,f:"PERMUTA",p:1,a:0},
+  {mes:"Mai",mn:5,vend:"MF",c:"LEITE MOURA - IMUNIZAR VACINAS - ALTERNATIVA",v:3102.0,f:"PERMUTA",p:1,a:0.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"LEITE MOURA - IMUNIZAR VACINAS - FUNCIONÁRIOS",v:2068.0,f:"PERMUTA",p:1,a:0.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"MR HAMBURGUERIA - PIOR LUGAR - LAMBE LAMBE",v:50.0,f:"PIX",p:1,a:18.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"RESERVA (SALVATORE COMERCIO LTDA)",v:3450.0,f:"BOLETO",p:3,a:0.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"MBA - SENAC (SERVICO NACIONAL DE APRENDIZAGEM COMERCIAL - SENAC MINAS)",v:3400.0,f:"BOLETO",p:1,a:1295.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"MBA - SENAC (SERVICO NACIONAL DE APRENDIZAGEM COMERCIAL - SENAC MINAS)",v:500.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"MBA - SENAC (SERVICO NACIONAL DE APRENDIZAGEM COMERCIAL - SENAC MINAS)",v:800.0,f:"BOLETO",p:1,a:480.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"MOLYANA KELLY PEREIRA",v:14590.0,f:"BOLETO",p:6,a:1500.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"AFYA PARTICIPACOES S.A",v:1650.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"A2707 - BOALI (CORREA FOOD LIFE LTDA) - R$ 2.375,00",v:2375.0,f:"N/A",p:4,a:0},
+  {mes:"Mai",mn:5,vend:"MF",c:"PREFEITURA PLACAS IPTU",v:11000.0,f:"BOLETO",p:1,a:2200.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"CLAUDIA REGINA (Claudia Regina Vieira)",v:775.0,f:"BOLETO",p:2,a:400.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"MG OUTDOOR - HAVAN",v:2750.0,f:"BOLETO",p:1,a:350.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"INSTITUTO SUPERIOR - FCO - IMPRESSOES E COLAGENS",v:1450.0,f:"BOLETO",p:1,a:750.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"JMM DERIVADOS - POSTO CANDANGO",v:250.0,f:"BOLETO",p:1,a:100.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"SOLIDO (INSTITUTO EDUCACIONAL SOLIDO - I E S)",v:6210.0,f:"BOLETO",p:4,a:2123.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"MART MINAS (MART MINAS DISTRIBUICAO LTDA)",v:3925.0,f:"BOLETO",p:1,a:750.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"MOURA BATERIAS (CONORTE COMERCIAL NORTE MINAS DE BATERIAS LTDA)",v:3050.0,f:"BOLETO",p:1,a:0},
+  {mes:"Mai",mn:5,vend:"JP",c:"SAGA MEDIAÇÃO (SAGA MEDICAO ) - 20%",v:3062.5,f:"BOLETO",p:2,a:912.5},
+  {mes:"Mai",mn:5,vend:"MF",c:"MAYRA FREITAS LACERDA",v:825.0,f:"BOLETO",p:2,a:425.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"UNINTER EDUCACIONAL (INTEGRAL MIDIA LTDA)",v:3000.0,f:"BOLETO",p:1,a:500.0},
+  {mes:"Mai",mn:5,vend:"JP",c:"UNINTER EDUCACIONAL S/A - LED (INTEGRAL MIDIA LTDA)",v:700.0,f:"BOLETO",p:1,a:490.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"PREFEITURA DE MONTES CLAROS - IPTU",v:8000.0,f:"BOLETO",p:1,a:0.0},
+  {mes:"Mai",mn:5,vend:"MF",c:"KTO RENOVAÇÃO",v:79200.0,f:"N/A",p:1,a:0},
+  {mes:"Jun",mn:6,vend:"JP",c:"EDNALDO GOMES BRITO",v:7000.0,f:"DINHEIRO",p:2,a:1350.0},
+  {mes:"Jun",mn:6,vend:"JP",c:"ANA CECILIA DESIGNER",v:775.0,f:"BOLETO",p:2,a:0},
+  {mes:"Jun",mn:6,vend:"JP",c:"MATER CLINICAS & IMAGENS SERVICOS MEDICOS LTDA",v:3825.0,f:"BOLETO",p:3,a:0}
+];
+
+// ── METAS — aba META da planilha ─────────────────────────────────────────────
+const METAS = {
+  Jan:{meta:249104.9, fat:216744},
+  Fev:{meta:232888.15,fat:124757.08},
+  Mar:{meta:308748.5, fat:307624.66},
+  Abr:{meta:229901.88,fat:299730},
+  Mai:{meta:334983.93,fat:223172.5},
+  Jun:{meta:425478.46,fat:11600},
+};
+const MESES=["Jan","Fev","Mar","Abr","Mai","Jun"];
+const NOMES={JP:"João Pedro",BR:"Bernardo",MF:"Maria Fernanda",todos:"Todos"};
+
+const R=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",minimumFractionDigits:0,maximumFractionDigits:0});
+const Rk=v=>v>=1000?`R$${(v/1000).toFixed(0)}k`:`R$${v}`;
+const GOLD="#C9A84C",GOLD2="#F0CC6E",BLUE="#3B82F6",GREEN="#34D399",RED="#F87171",PURPLE="#A78BFA",ORANGE="#FB923C";
+const COLORS=[GOLD,BLUE,GREEN,PURPLE,ORANGE,"#F472B6","#67E8F9","#A3E635"];
+const VCOL={JP:GOLD,BR:BLUE,MF:PURPLE};
+
+const TTip=({active,payload,label})=>{
+  if(!active||!payload?.length)return null;
+  return React.createElement("div",{style:{background:"#0D1117",border:"1px solid #21262d",borderRadius:10,padding:"10px 14px",fontSize:12}},
+    label&&React.createElement("div",{style:{color:"#94a3b8",marginBottom:5,fontWeight:600}},label),
+    payload.map((p,i)=>React.createElement("div",{key:i,style:{display:"flex",gap:8,alignItems:"center",marginBottom:3}},
+      React.createElement("span",{style:{width:7,height:7,borderRadius:"50%",background:p.color||GOLD,display:"inline-block",flexShrink:0}}),
+      React.createElement("span",{style:{color:"#94a3b8"}},p.name+":"),
+      React.createElement("strong",{style:{color:"#fff"}},typeof p.value==="number"&&p.value>100?R(p.value):p.value)
+    ))
+  );
+};
+
+function Spark({data,color}){
+  if(!data||data.length<2)return null;
+  const mn=Math.min(...data),mx=Math.max(...data),rng=mx-mn||1;
+  const W=72,H=26;
+  const pts=data.map((v,i)=>`${(i/(data.length-1))*W},${H-((v-mn)/rng)*(H-4)-2}`).join(" ");
+  return React.createElement("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`,style:{opacity:.8}},
+    React.createElement("polyline",{points:pts,fill:"none",stroke:color||GOLD2,strokeWidth:1.8,strokeLinecap:"round",strokeLinejoin:"round"})
+  );
+}
+
+function KCard({icon,label,value,sub,subColor,spark,progress,pPct,pColor}){
+  subColor=subColor||GOLD; pColor=pColor||GOLD;
+  return React.createElement("div",{style:{background:"linear-gradient(145deg,#161B27,#0D1117)",border:"1px solid #21262d",borderRadius:16,padding:"18px 20px",position:"relative",overflow:"hidden"}},
+    React.createElement("div",{style:{position:"absolute",top:0,right:0,width:56,height:56,background:`radial-gradient(circle at top right,${GOLD}14,transparent 70%)`}}),
+    React.createElement("div",{style:{fontSize:10,color:"#64748b",letterSpacing:"0.1em",textTransform:"uppercase",fontWeight:600,marginBottom:7}},icon+" "+label),
+    React.createElement("div",{style:{fontSize:22,fontWeight:800,color:"#F1F5F9",lineHeight:1.1,marginBottom:5}},value),
+    sub&&React.createElement("div",{style:{fontSize:11,color:subColor}},sub),
+    progress&&React.createElement("div",{style:{marginTop:8}},
+      React.createElement("div",{style:{background:"#21262d",borderRadius:99,height:5}},
+        React.createElement("div",{style:{background:`linear-gradient(90deg,${pColor},${pColor}99)`,width:`${Math.min(pPct,100)}%`,height:5,borderRadius:99,boxShadow:`0 0 8px ${pColor}55`}})
+      ),
+      React.createElement("div",{style:{fontSize:10,color:"#64748b",marginTop:3}},Number(pPct).toFixed(1)+"% da meta")
+    ),
+    spark&&React.createElement("div",{style:{marginTop:7}},React.createElement(Spark,{data:spark,color:GOLD2}))
+  );
+}
+
+const SH=({t})=>React.createElement("div",{style:{fontSize:10,letterSpacing:"0.14em",textTransform:"uppercase",color:"#475569",fontWeight:700,marginBottom:12,marginTop:6}},t);
+const Pill=({children,active,onClick})=>React.createElement("button",{onClick,style:{padding:"6px 14px",borderRadius:20,fontSize:11,fontWeight:500,cursor:"pointer",background:active?`${GOLD}1A`:"transparent",border:active?`1px solid ${GOLD}66`:"1px solid #21262d",color:active?GOLD:"#64748b"}},children);
+const prog=(p,c)=>({background:`linear-gradient(90deg,${c},${c}99)`,width:`${Math.min(p,100)}%`,height:6,borderRadius:99,boxShadow:`0 0 8px ${c}44`});
+const tag=(c,bg)=>({display:"inline-block",padding:"2px 8px",borderRadius:99,fontSize:10,fontWeight:600,background:bg,color:c});
+
+function App(){
+  const [vend,setVend]=useState("todos");
+  const [mes,setMes]=useState("todos");
+  const [tab,setTab]=useState("overview");
+
+  const sales=useMemo(()=>{
+    let s=VENDAS;
+    if(vend!=="todos")s=s.filter(x=>x.vend===vend);
+    if(mes!=="todos")s=s.filter(x=>x.mes===mes);
+    return s;
+  },[vend,mes]);
+
+  const totalFat=sales.reduce((a,b)=>a+b.v,0);
+  const totalAlt=sales.reduce((a,b)=>a+b.a,0);
+  const qtd=sales.length;
+  const ticket=qtd>0?totalFat/qtd:0;
+  const anuais=sales.filter(s=>s.p>=12).length;
+  const altPct=totalFat>0?(totalAlt/totalFat*100):0;
+  const metaRef=useMemo(()=>mes!=="todos"?METAS[mes]?.meta||0:Object.values(METAS).reduce((a,b)=>a+b.meta,0),[mes]);
+  const metaPct=metaRef>0?(totalFat/metaRef*100):0;
+  const sparkVals=MESES.map(m=>VENDAS.filter(x=>x.mes===m&&(vend==="todos"||x.vend===vend)).reduce((a,b)=>a+b.v,0));
+
+  const monthlyData=MESES.map(m=>{
+    const s=VENDAS.filter(x=>x.mes===m&&(vend==="todos"||x.vend===vend));
+    return{mes:m,fat:s.reduce((a,b)=>a+b.v,0),alt:s.reduce((a,b)=>a+b.a,0),meta:METAS[m]?.meta||0,qtd:s.length};
+  });
+
+  const byPag=useMemo(()=>{
+    const m={};sales.forEach(s=>{const f=s.f||"N/A";m[f]=(m[f]||0)+s.v;});
+    return Object.entries(m).sort((a,b)=>b[1]-a[1]).map(([forma,valor])=>({forma,valor}));
+  },[sales]);
+
+  const topClientes=useMemo(()=>{
+    const m={};
+    sales.forEach(s=>{const k=s.c.split(" - ")[0].replace(/\s*LTDA\s*/i,"").replace(/\s*S\.A\s*/i,"").trim().slice(0,32);m[k]=(m[k]||0)+s.v;});
+    return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c,v])=>({c,v}));
+  },[sales]);
+
+  const parcData=useMemo(()=>{
+    const m={"À vista":0,"2-3x":0,"4-6x":0,"7-12x":0};
+    sales.forEach(s=>{if(s.p<=1)m["À vista"]+=s.v;else if(s.p<=3)m["2-3x"]+=s.v;else if(s.p<=6)m["4-6x"]+=s.v;else m["7-12x"]+=s.v;});
+    return Object.entries(m).filter(([,v])=>v>0).map(([n,v])=>({n,v}));
+  },[sales]);
+
+  const metasTable=MESES.map(m=>{const d=METAS[m];const p=d.meta>0?(d.fat/d.meta*100):0;return{mes:m,meta:d.meta,fat:d.fat,saldo:d.fat-d.meta,pct:p,ok:p>=100};});
+
+  const S={
+    root:{fontFamily:"'Inter','Segoe UI',sans-serif",background:"#080C12",color:"#E2E8F0",minHeight:"100vh",padding:"22px 26px",maxWidth:1300,margin:"0 auto"},
+    hdr:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:26,paddingBottom:18,borderBottom:"1px solid #161B27"},
+    logoBox:{width:44,height:44,background:`linear-gradient(135deg,${GOLD},${GOLD2})`,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:900,color:"#080C12",boxShadow:`0 4px 20px ${GOLD}44`},
+    logoName:{fontSize:19,fontWeight:800,background:`linear-gradient(90deg,#fff 50%,${GOLD})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:"-0.4px"},
+    pill:{background:"#161B27",border:"1px solid #21262d",borderRadius:20,padding:"5px 12px",fontSize:11,color:"#94a3b8",fontWeight:500},
+    pillG:{background:`${GOLD}1A`,border:`1px solid ${GOLD}66`,color:GOLD},
+    grid4:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:13,marginBottom:22},
+    grid2:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:18},
+    box:{background:"linear-gradient(145deg,#161B27,#0D1117)",border:"1px solid #21262d",borderRadius:16,padding:"19px 21px"},
+    bTitle:{fontSize:12,fontWeight:700,color:"#CBD5E1",marginBottom:15},
+    filterRow:{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap",alignItems:"center"},
+    fLabel:{fontSize:10,color:"#475569",letterSpacing:"0.1em",textTransform:"uppercase",fontWeight:700,marginRight:2},
+    sep:{width:1,height:22,background:"#21262d",margin:"0 5px"},
+    tabs:{display:"flex",gap:3,marginBottom:20,background:"#161B27",borderRadius:12,padding:4,border:"1px solid #21262d"},
+    tabBtn:(a)=>({padding:"7px 16px",borderRadius:9,fontSize:12,fontWeight:600,cursor:"pointer",background:a?"#0D1117":"transparent",color:a?GOLD:"#64748b",border:a?`1px solid ${GOLD}33`:"1px solid transparent"}),
+    progBar:{background:"#21262d",borderRadius:99,height:6,marginTop:4},
+    tbl:{width:"100%",borderCollapse:"collapse",fontSize:12},
+    th:{textAlign:"left",padding:"8px 11px",color:"#475569",fontWeight:600,fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",borderBottom:"1px solid #21262d"},
+    td:{padding:"8px 11px",color:"#CBD5E1",borderBottom:"1px solid #161B27"},
+    insight:{background:"linear-gradient(145deg,#161B27,#0D1117)",border:"1px solid #21262d",borderRadius:12,padding:"13px 17px",fontSize:12,lineHeight:1.65,color:"#94a3b8"},
+  };
+
+  const acumFat=Object.values(METAS).reduce((a,b)=>a+b.fat,0);
+  const acumMeta=Object.values(METAS).reduce((a,b)=>a+b.meta,0);
+
+  return React.createElement("div",{style:S.root},
+    // HEADER
+    React.createElement("div",{style:S.hdr},
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:14}},
+        React.createElement("div",{style:S.logoBox},"A"),
+        React.createElement("div",null,
+          React.createElement("div",{style:S.logoName},"Alternativa Publicidade"),
+          React.createElement("div",{style:{fontSize:11,color:"#475569",marginTop:2}},"Central de Gestão Comercial · 61.186.888/0001-93")
+        )
+      ),
+      React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center"}},
+        React.createElement("div",{style:{...S.pill,...S.pillG}},"📅 Jan–Jun 2026"),
+        React.createElement("div",{style:S.pill},"230 registros verificados"),
+        React.createElement("div",{style:S.pill},"3 vendedores")
+      )
+    ),
+    // FILTROS
+    React.createElement("div",{style:S.filterRow},
+      React.createElement("span",{style:S.fLabel},"Vendedor"),
+      ...[{id:"todos",l:"Todos"},{id:"JP",l:"João Pedro"},{id:"MF",l:"Maria Fernanda"},{id:"BR",l:"Bernardo"}].map(o=>
+        React.createElement(Pill,{key:o.id,active:vend===o.id,onClick:()=>setVend(o.id)},o.l)
+      ),
+      React.createElement("div",{style:S.sep}),
+      React.createElement("span",{style:S.fLabel},"Mês"),
+      React.createElement(Pill,{active:mes==="todos",onClick:()=>setMes("todos")},"Todos"),
+      ...MESES.map(m=>React.createElement(Pill,{key:m,active:mes===m,onClick:()=>setMes(m)},m))
+    ),
+    // TABS
+    React.createElement("div",{style:S.tabs},
+      ...[["overview","📊 Visão Geral"],["tabela","📋 Vendas"],["vendedores","👤 Vendedores"],["metas","🎯 Metas"]].map(([id,l])=>
+        React.createElement("button",{key:id,onClick:()=>setTab(id),style:S.tabBtn(tab===id)},l)
+      )
+    ),
+
+    // ═══ OVERVIEW ═══
+    tab==="overview"&&React.createElement(React.Fragment,null,
+      React.createElement(SH,{t:"Indicadores-chave"}),
+      React.createElement("div",{style:S.grid4},
+        React.createElement(KCard,{icon:"💰",label:"Faturamento Total",value:R(totalFat),progress:true,pPct:metaPct,pColor:metaPct>=100?GREEN:GOLD,sub:"Meta: "+R(metaRef),subColor:"#64748b",spark:sparkVals}),
+        React.createElement(KCard,{icon:"🏦",label:"Receita Alternativa",value:R(totalAlt),sub:altPct.toFixed(0)+"% do total contratado",subColor:GREEN}),
+        React.createElement(KCard,{icon:"📋",label:"Negócios Fechados",value:qtd,sub:anuais+" contratos anuais (12x)",subColor:BLUE}),
+        React.createElement(KCard,{icon:"🎯",label:"Meta Atingida",value:Number(metaPct).toFixed(1)+"%",sub:metaPct>=100?"✅ Meta superada! +"+R(totalFat-metaRef):"Faltam "+R(Math.max(0,metaRef-totalFat)),subColor:metaPct>=100?GREEN:RED,progress:true,pPct:metaPct,pColor:metaPct>=100?GREEN:GOLD}),
+        React.createElement(KCard,{icon:"🎫",label:"Ticket Médio",value:R(ticket),sub:"por negócio fechado",subColor:"#64748b"}),
+        React.createElement(KCard,{icon:"💳",label:"Boleto",value:(byPag.find(p=>p.forma==="BOLETO")?((byPag.find(p=>p.forma==="BOLETO").valor/totalFat)*100).toFixed(0):0)+"%",sub:"forma principal de pagamento",subColor:"#64748b"}),
+        React.createElement(KCard,{icon:"📆",label:"Média Mensal",value:R(totalFat/(monthlyData.filter(d=>d.fat>0).length||1)),sub:"nos meses com dados",subColor:"#64748b"}),
+        React.createElement(KCard,{icon:"🔄",label:"Contratos 12x",value:anuais,sub:"recorrência garantida",subColor:PURPLE})
+      ),
+      React.createElement(SH,{t:"Evolução Mensal"}),
+      React.createElement("div",{style:{...S.box,marginBottom:18}},
+        React.createElement("div",{style:S.bTitle},"📈 Faturamento vs Meta vs Receita Alternativa — Jan a Jun/26"),
+        React.createElement(ResponsiveContainer,{width:"100%",height:230},
+          React.createElement(ComposedChart,{data:monthlyData,margin:{top:8,right:16,bottom:0,left:24}},
+            React.createElement("defs",null,
+              React.createElement("linearGradient",{id:"gF",x1:"0",y1:"0",x2:"0",y2:"1"},React.createElement("stop",{offset:"5%",stopColor:GOLD,stopOpacity:0.25}),React.createElement("stop",{offset:"95%",stopColor:GOLD,stopOpacity:0})),
+              React.createElement("linearGradient",{id:"gA",x1:"0",y1:"0",x2:"0",y2:"1"},React.createElement("stop",{offset:"5%",stopColor:GREEN,stopOpacity:0.18}),React.createElement("stop",{offset:"95%",stopColor:GREEN,stopOpacity:0}))
+            ),
+            React.createElement(CartesianGrid,{strokeDasharray:"3 3",stroke:"#21262d"}),
+            React.createElement(XAxis,{dataKey:"mes",tick:{fontSize:11,fill:"#64748b"}}),
+            React.createElement(YAxis,{tick:{fontSize:10,fill:"#64748b"},tickFormatter:Rk}),
+            React.createElement(Tooltip,{content:React.createElement(TTip,null)}),
+            React.createElement(Area,{type:"monotone",dataKey:"fat",stroke:GOLD,strokeWidth:2.5,fill:"url(#gF)",name:"Contrato Total",dot:{fill:GOLD,r:4}}),
+            React.createElement(Area,{type:"monotone",dataKey:"alt",stroke:GREEN,strokeWidth:2,fill:"url(#gA)",name:"Receita Alternativa",dot:{fill:GREEN,r:3}}),
+            React.createElement(Line,{type:"monotone",dataKey:"meta",stroke:RED,strokeWidth:1.5,strokeDasharray:"6 3",name:"Meta",dot:false})
+          )
+        ),
+        React.createElement("div",{style:{display:"flex",gap:20,marginTop:8,fontSize:11,color:"#94a3b8"}},
+          React.createElement("span",null,React.createElement("span",{style:{color:GOLD}},"■")," Valor total do contrato"),
+          React.createElement("span",null,React.createElement("span",{style:{color:GREEN}},"■")," Receita líquida Alternativa"),
+          React.createElement("span",null,React.createElement("span",{style:{color:RED}},"- -")," Meta mensal")
+        )
+      ),
+      React.createElement("div",{style:S.grid2},
+        React.createElement("div",{style:S.box},
+          React.createElement("div",{style:S.bTitle},"📅 Faturamento por Mês"),
+          React.createElement(ResponsiveContainer,{width:"100%",height:190},
+            React.createElement(BarChart,{data:monthlyData,margin:{top:5,right:8,bottom:0,left:16}},
+              React.createElement(CartesianGrid,{strokeDasharray:"3 3",stroke:"#21262d",vertical:false}),
+              React.createElement(XAxis,{dataKey:"mes",tick:{fontSize:11,fill:"#64748b"}}),
+              React.createElement(YAxis,{tick:{fontSize:10,fill:"#64748b"},tickFormatter:Rk}),
+              React.createElement(Tooltip,{content:React.createElement(TTip,null)}),
+              React.createElement(Bar,{dataKey:"fat",name:"Faturamento",radius:[6,6,0,0]},
+                monthlyData.map((d,i)=>React.createElement(Cell,{key:i,fill:d.fat>=d.meta?GREEN:d.fat>d.meta*0.8?GOLD:"#1E2B3C"}))
+              )
+            )
+          ),
+          React.createElement("div",{style:{fontSize:11,color:"#64748b",marginTop:8}},
+            React.createElement("span",{style:{color:GREEN}},"■")," meta batida   ",
+            React.createElement("span",{style:{color:GOLD}},"■")," >80%   ",
+            React.createElement("span",{style:{color:"#475569"}},"■")," abaixo"
+          )
+        ),
+        React.createElement("div",{style:S.box},
+          React.createElement("div",{style:S.bTitle},"💳 Formas de Pagamento"),
+          React.createElement(ResponsiveContainer,{width:"100%",height:165},
+            React.createElement(PieChart,null,
+              React.createElement(Pie,{data:byPag,cx:"50%",cy:"50%",innerRadius:40,outerRadius:70,dataKey:"valor",nameKey:"forma",paddingAngle:3},
+                byPag.map((_,i)=>React.createElement(Cell,{key:i,fill:COLORS[i]}))
+              ),
+              React.createElement(Tooltip,{content:React.createElement(TTip,null)})
+            )
+          ),
+          React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:10,marginTop:4}},
+            ...byPag.map((p,i)=>React.createElement("div",{key:i,style:{fontSize:11,color:"#94a3b8",display:"flex",gap:5,alignItems:"center"}},
+              React.createElement("span",{style:{width:7,height:7,borderRadius:"50%",background:COLORS[i],display:"inline-block"}}),
+              React.createElement("span",{style:{color:COLORS[i],fontWeight:600}},p.forma),
+              React.createElement("span",null,(totalFat>0?((p.valor/totalFat)*100).toFixed(0):0)+"%")
+            ))
+          )
+        )
+      ),
+      React.createElement("div",{style:S.grid2},
+        React.createElement("div",{style:S.box},
+          React.createElement("div",{style:S.bTitle},"👑 Top 8 Clientes"),
+          ...topClientes.map(({c,v},i)=>React.createElement("div",{key:i,style:{marginBottom:10}},
+            React.createElement("div",{style:{display:"flex",justifyContent:"space-between",fontSize:11,marginBottom:3,gap:8}},
+              React.createElement("span",{style:{color:"#94a3b8",display:"flex",gap:5}},
+                React.createElement("span",{style:{color:i===0?GOLD:"#475569",fontWeight:700,minWidth:16}},"#"+(i+1)),
+                React.createElement("span",{style:{overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis",maxWidth:185}},c)
+              ),
+              React.createElement("span",{style:{color:GOLD,fontWeight:700,flexShrink:0}},R(v))
+            ),
+            React.createElement("div",{style:{background:"#21262d",borderRadius:99,height:6}},
+              React.createElement("div",{style:prog((v/(topClientes[0]?.v||1))*100,COLORS[i%COLORS.length])})
+            )
+          ))
+        ),
+        React.createElement("div",{style:S.box},
+          React.createElement("div",{style:S.bTitle},"🔄 Parcelamento"),
+          React.createElement(ResponsiveContainer,{width:"100%",height:175},
+            React.createElement(BarChart,{data:parcData,layout:"vertical",margin:{top:0,right:20,bottom:0,left:36}},
+              React.createElement(CartesianGrid,{strokeDasharray:"3 3",stroke:"#21262d",horizontal:false}),
+              React.createElement(XAxis,{type:"number",tick:{fontSize:10,fill:"#64748b"},tickFormatter:Rk}),
+              React.createElement(YAxis,{type:"category",dataKey:"n",tick:{fontSize:11,fill:"#94a3b8"},width:42}),
+              React.createElement(Tooltip,{content:React.createElement(TTip,null)}),
+              React.createElement(Bar,{dataKey:"v",name:"Valor",radius:[0,6,6,0]},
+                parcData.map((_,i)=>React.createElement(Cell,{key:i,fill:COLORS[i]}))
+              )
+            )
+          )
+        )
+      ),
+      React.createElement(SH,{t:"Inteligência de Negócio"}),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:22}},
+        ...[
+          {icon:"📊",cor:GOLD,t:"Acumulado Jan–Jun 2026",txt:`Faturamento de ${R(acumFat)} sobre meta de ${R(acumMeta)} — ${(acumFat/acumMeta*100).toFixed(1)}% do período. Apenas Abril bateu a meta (130%). Total acumulado representa ${(acumFat/acumMeta*100).toFixed(1)}% do objetivo semestral.`},
+          {icon:"🏆",cor:GOLD2,t:"Melhor Mês: Abril/26",txt:`Abril foi o único mês com meta superada: R$ 299.730 (+30% sobre meta de R$ 229.902). Destaque para FC Franchising (R$ 21.600), Tintacon (R$ 25.815) e Centro Estética Mendes (R$ 17.280).`},
+          {icon:"⚡",cor:GREEN,t:"Maria Fernanda — Crescimento",txt:`Integrada em Março, MF rapidamente tornou-se a maior vendedora em Abril e Maio. Em Maio fechou o KTO Renovação por R$ 79.200 — maior venda individual do semestre.`},
+          {icon:"📉",cor:RED,t:"Atenção: Fev (54%) e Mai (67%)",txt:`Fevereiro e Maio ficaram bem abaixo da meta. Em Fevereiro, poucos contratos grandes. Em Maio, o KTO de R$ 79.200 não gerou receita própria (repasse 100%), distorcendo o resultado.`},
+          {icon:"🔄",cor:BLUE,t:`${VENDAS.filter(x=>x.p>=12).length} Contratos Anuais Ativos`,txt:`Contratos 12x somam ${R(VENDAS.filter(x=>x.p>=12).reduce((a,b)=>a+b.v,0))} em valor total. Base recorrente robusta. Renovações estratégicas antes do vencimento protegem o faturamento de 2027.`},
+          {icon:"💡",cor:PURPLE,t:"KTO Renovação — R$ 79.200",txt:`Maior contrato do semestre (Mai/MF). Registrado sem receita para Alternativa (alt=0). Verificar estrutura contratual — pode representar uma oportunidade de renegociação de margem.`},
+        ].map((ins,i)=>React.createElement("div",{key:i,style:{...S.insight,borderLeft:`3px solid ${ins.cor}`}},
+          React.createElement("div",{style:{color:ins.cor,fontWeight:700,fontSize:12,marginBottom:5}},ins.icon+" "+ins.t),
+          ins.txt
+        ))
+      )
+    ),
+
+    // ═══ TABELA ═══
+    tab==="tabela"&&React.createElement("div",{style:S.box},
+      React.createElement("div",{style:S.bTitle},"📋 Todas as Vendas · "+NOMES[vend]+" · "+(mes==="todos"?"Jan–Jun 2026":mes+"/26")+" · "+sales.length+" registros · Total: "+R(totalFat)),
+      React.createElement("div",{style:{overflowX:"auto"}},
+        React.createElement("table",{style:S.tbl},
+          React.createElement("thead",null,React.createElement("tr",null,
+            ...["Mês","Vendedor","Cliente","Valor Contrato","Rec. Alternativa","Pagamento","Parc."].map(h=>React.createElement("th",{key:h,style:S.th},h))
+          )),
+          React.createElement("tbody",null,
+            ...sales.map((s,i)=>React.createElement("tr",{key:i,
+              onMouseEnter:e=>e.currentTarget.style.background="#161B27",
+              onMouseLeave:e=>e.currentTarget.style.background="transparent"},
+              React.createElement("td",{style:{...S.td,color:GOLD,fontWeight:600}},s.mes),
+              React.createElement("td",{style:S.td},React.createElement("span",{style:tag(VCOL[s.vend]||GOLD,`${VCOL[s.vend]||GOLD}1A`)},NOMES[s.vend])),
+              React.createElement("td",{style:{...S.td,maxWidth:280,overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}},s.c.length>50?s.c.slice(0,50)+"…":s.c),
+              React.createElement("td",{style:{...S.td,color:"#F1F5F9",fontWeight:700}},R(s.v)),
+              React.createElement("td",{style:{...S.td,color:s.a>0?GREEN:"#475569"}},s.a>0?R(s.a):"—"),
+              React.createElement("td",{style:S.td},React.createElement("span",{style:tag(s.f==="PIX"?GREEN:s.f==="PERMUTA"?PURPLE:s.f==="DINHEIRO"?ORANGE:"#94a3b8",s.f==="PIX"?`${GREEN}1A`:s.f==="PERMUTA"?`${PURPLE}1A`:s.f==="DINHEIRO"?`${ORANGE}1A`:"#21262d")},s.f)),
+              React.createElement("td",{style:{...S.td,color:s.p>=12?GOLD:s.p>1?BLUE:"#475569"}},s.p+"x")
+            ))
+          )
+        )
+      )
+    ),
+
+    // ═══ VENDEDORES ═══
+    tab==="vendedores"&&React.createElement(React.Fragment,null,
+      React.createElement(SH,{t:"Performance por Vendedor"}),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16,marginBottom:22}},
+        ...["JP","MF","BR"].map(v2=>{
+          const allV=VENDAS.filter(s=>s.vend===v2&&(mes==="todos"||s.mes===mes));
+          const fat=allV.reduce((a,b)=>a+b.v,0);
+          const alt=allV.reduce((a,b)=>a+b.a,0);
+          const qtd2=allV.length;
+          const tk=qtd2>0?fat/qtd2:0;
+          const byMes=MESES.map(m=>({mes:m,fat:allV.filter(s=>s.mes===m).reduce((a,b)=>a+b.v,0)}));
+          const vc=VCOL[v2]||GOLD;
+          return React.createElement("div",{key:v2,style:{background:"linear-gradient(145deg,#161B27,#0D1117)",border:"1px solid #21262d",borderRadius:16,padding:"20px"}},
+            React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}},
+              React.createElement("div",null,
+                React.createElement("div",{style:{fontSize:17,fontWeight:800,color:"#F1F5F9"}},NOMES[v2]),
+                React.createElement("div",{style:{fontSize:10,color:"#475569",marginTop:2}},v2==="JP"?"Vendedor Sênior":v2==="MF"?"Vendedora (desde Mar/26)":"Vendedor Parceiro")
+              ),
+              React.createElement("span",{style:tag(vc,`${vc}22`)},v2)
+            ),
+            React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}},
+              ...[["Contrato",R(fat),"#F1F5F9"],["Rec. Alt.",R(alt),GREEN],["Vendas",qtd2,"#F1F5F9"],["Ticket",R(tk),GOLD]].map(([l,v3,c])=>
+                React.createElement("div",{key:l},
+                  React.createElement("div",{style:{fontSize:10,color:"#475569",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:2}},l),
+                  React.createElement("div",{style:{fontSize:17,fontWeight:700,color:c}},v3)
+                )
+              )
+            ),
+            React.createElement("div",{style:{marginBottom:8}},
+              React.createElement("div",{style:{fontSize:11,color:"#475569",marginBottom:5}},"Faturamento Mensal"),
+              React.createElement(ResponsiveContainer,{width:"100%",height:75},
+                React.createElement(BarChart,{data:byMes.filter(d=>d.fat>0),margin:{top:0,right:0,bottom:0,left:0}},
+                  React.createElement(XAxis,{dataKey:"mes",tick:{fontSize:9,fill:"#64748b"}}),
+                  React.createElement(Tooltip,{content:React.createElement(TTip,null)}),
+                  React.createElement(Bar,{dataKey:"fat",name:"Faturamento",fill:vc,radius:[4,4,0,0],opacity:0.85})
+                )
+              )
+            ),
+            React.createElement("div",{style:{fontSize:11,color:"#64748b"}},
+              "Receita própria: ",React.createElement("span",{style:{color:GREEN,fontWeight:600}},fat>0?((alt/fat)*100).toFixed(0):0,"%")," do total"
+            )
+          );
+        })
+      ),
+      React.createElement("div",{style:S.box},
+        React.createElement("div",{style:S.bTitle},"📊 Faturamento por Mês × Vendedor"),
+        React.createElement(ResponsiveContainer,{width:"100%",height:230},
+          React.createElement(BarChart,{
+            data:MESES.map(m=>{const row={mes:m};["JP","MF","BR"].forEach(v2=>{row[v2]=VENDAS.filter(x=>x.mes===m&&x.vend===v2&&(vend==="todos"||x.vend===vend)).reduce((a,b)=>a+b.v,0);});return row;}),
+            margin:{top:8,right:8,bottom:0,left:20}},
+            React.createElement(CartesianGrid,{strokeDasharray:"3 3",stroke:"#21262d",vertical:false}),
+            React.createElement(XAxis,{dataKey:"mes",tick:{fontSize:11,fill:"#64748b"}}),
+            React.createElement(YAxis,{tick:{fontSize:10,fill:"#64748b"},tickFormatter:Rk}),
+            React.createElement(Tooltip,{content:React.createElement(TTip,null)}),
+            React.createElement(Legend,{formatter:v2=>React.createElement("span",{style:{color:VCOL[v2]||GOLD,fontSize:11}},NOMES[v2])}),
+            React.createElement(Bar,{dataKey:"JP",name:"JP",fill:GOLD,stackId:"a"}),
+            React.createElement(Bar,{dataKey:"MF",name:"MF",fill:PURPLE,stackId:"a"}),
+            React.createElement(Bar,{dataKey:"BR",name:"BR",fill:BLUE,radius:[4,4,0,0],stackId:"a"})
+          )
+        )
+      )
+    ),
+
+    // ═══ METAS ═══
+    tab==="metas"&&React.createElement(React.Fragment,null,
+      React.createElement(SH,{t:"Acompanhamento de Metas — 2026"}),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14,marginBottom:22}},
+        ...metasTable.map(m=>React.createElement("div",{key:m.mes,style:{...S.box,borderLeft:`3px solid ${m.ok?GREEN:m.pct>80?GOLD:RED}`}},
+          React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:13}},
+            React.createElement("span",{style:{fontSize:16,fontWeight:800,color:"#F1F5F9"}},m.mes+"/26"),
+            React.createElement("span",{style:tag(m.ok?GREEN:m.pct>80?GOLD:RED,m.ok?`${GREEN}1A`:m.pct>80?`${GOLD}1A`:`${RED}1A`)},m.ok?"✅ META BATIDA":m.pct>80?"⚠️ PRÓXIMO":"❌ ABAIXO")
+          ),
+          React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:13}},
+            React.createElement("div",null,React.createElement("div",{style:{fontSize:10,color:"#475569",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:2}},"Meta"),React.createElement("div",{style:{fontSize:16,fontWeight:700,color:"#F1F5F9"}},R(m.meta))),
+            React.createElement("div",null,React.createElement("div",{style:{fontSize:10,color:"#475569",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:2}},"Realizado"),React.createElement("div",{style:{fontSize:16,fontWeight:700,color:m.ok?GREEN:GOLD}},R(m.fat)))
+          ),
+          React.createElement("div",{style:{background:"#21262d",borderRadius:99,height:6}},React.createElement("div",{style:prog(m.pct,m.ok?GREEN:m.pct>80?GOLD:RED)})),
+          React.createElement("div",{style:{display:"flex",justifyContent:"space-between",marginTop:7,fontSize:11}},
+            React.createElement("span",{style:{color:m.ok?GREEN:m.pct>80?GOLD:RED,fontWeight:600}},m.pct.toFixed(1)+"%"),
+            React.createElement("span",{style:{color:m.saldo>=0?GREEN:RED,fontWeight:600}},m.saldo>=0?"+"+R(m.saldo):R(m.saldo)+" saldo")
+          )
+        ))
+      ),
+      React.createElement("div",{style:{...S.box,marginBottom:18}},
+        React.createElement("div",{style:S.bTitle},"📊 Meta vs Realizado — Comparativo"),
+        React.createElement(ResponsiveContainer,{width:"100%",height:240},
+          React.createElement(BarChart,{data:metasTable,margin:{top:8,right:16,bottom:0,left:24}},
+            React.createElement(CartesianGrid,{strokeDasharray:"3 3",stroke:"#21262d",vertical:false}),
+            React.createElement(XAxis,{dataKey:"mes",tick:{fontSize:11,fill:"#64748b"}}),
+            React.createElement(YAxis,{tick:{fontSize:10,fill:"#64748b"},tickFormatter:Rk}),
+            React.createElement(Tooltip,{content:React.createElement(TTip,null)}),
+            React.createElement(Legend,{formatter:v=>React.createElement("span",{style:{fontSize:11,color:v==="fat"?GOLD:RED}},v==="fat"?"Realizado":"Meta")}),
+            React.createElement(Bar,{dataKey:"meta",name:"meta",fill:`${RED}22`,stroke:RED,strokeWidth:1,radius:[4,4,0,0]}),
+            React.createElement(Bar,{dataKey:"fat",name:"fat",radius:[4,4,0,0]},
+              metasTable.map((d,i)=>React.createElement(Cell,{key:i,fill:d.ok?GREEN:d.pct>80?GOLD:RED,opacity:0.9}))
+            )
+          )
+        )
+      ),
+      React.createElement("div",{style:S.box},
+        React.createElement("div",{style:S.bTitle},"📈 Resumo Acumulado Jan–Jun 2026"),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:18}},
+          ...[
+            ["Meta Acumulada",R(metasTable.reduce((a,b)=>a+b.meta,0)),"#F1F5F9"],
+            ["Realizado Acum.",R(metasTable.reduce((a,b)=>a+b.fat,0)),GOLD],
+            ["Meses na Meta",metasTable.filter(m=>m.ok).length+" de "+metasTable.length,GREEN],
+            ["Saldo Geral",R(metasTable.reduce((a,b)=>a+b.saldo,0)),metasTable.reduce((a,b)=>a+b.saldo,0)>=0?GREEN:RED],
+          ].map(([l,v2,c])=>React.createElement("div",{key:l,style:{background:"#0D1117",borderRadius:12,padding:"14px 16px",border:"1px solid #161B27"}},
+            React.createElement("div",{style:{fontSize:10,color:"#475569",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5}},l),
+            React.createElement("div",{style:{fontSize:19,fontWeight:800,color:c}},v2)
+          ))
+        ),
+        React.createElement("div",{style:{marginTop:8}},
+          React.createElement("div",{style:{fontSize:11,color:"#475569",marginBottom:8}},"% da Meta por Mês"),
+          ...metasTable.map(m=>React.createElement("div",{key:m.mes,style:{display:"flex",alignItems:"center",gap:12,marginBottom:9}},
+            React.createElement("span",{style:{color:"#94a3b8",fontSize:12,minWidth:32}},m.mes),
+            React.createElement("div",{style:{flex:1,background:"#21262d",borderRadius:99,height:8}},
+              React.createElement("div",{style:prog(m.pct,m.ok?GREEN:m.pct>80?GOLD:RED)})
+            ),
+            React.createElement("span",{style:{color:m.ok?GREEN:m.pct>80?GOLD:RED,fontWeight:700,fontSize:12,minWidth:48}},m.pct.toFixed(1)+"%")
+          ))
+        )
+      )
+    ),
+
+    // FOOTER
+    React.createElement("div",{style:{textAlign:"center",color:"#21262d",fontSize:10,paddingTop:18,marginTop:14,borderTop:"1px solid #161B27"}},
+      "Alternativa Publicidade · CNPJ 61.186.888/0001-93 · Dashboard Comercial · Jan–Jun 2026 · Dados verificados ✅"
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
+</body>
+</html>
